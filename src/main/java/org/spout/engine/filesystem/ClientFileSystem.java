@@ -28,7 +28,6 @@ package org.spout.engine.filesystem;
 
 import org.spout.engine.resources.loader.MeshLoader;
 import org.spout.engine.resources.loader.RenderMaterialLoader;
-import org.spout.engine.resources.loader.ShaderLoader;
 import org.spout.engine.resources.loader.TextureLoader;
 
 public class ClientFileSystem extends SharedFileSystem {
@@ -45,7 +44,6 @@ public class ClientFileSystem extends SharedFileSystem {
 		super.init();
 		
 		registerLoader("texture", new TextureLoader());
-		registerLoader("shader", new ShaderLoader());
 		registerLoader("mesh", new MeshLoader());
 		registerLoader("material", new RenderMaterialLoader());
 

@@ -67,14 +67,9 @@ import org.spout.api.render.RenderMode;
 import org.spout.api.render.Shader;
 import org.spout.api.render.Texture;
 import org.spout.api.util.map.TInt21TripleObjectHashMap;
-import org.spout.engine.batcher.PrimitiveBatch;
 import org.spout.engine.filesystem.ClientFileSystem;
 import org.spout.engine.filesystem.SharedFileSystem;
 import org.spout.engine.mesh.BaseMesh;
-import org.spout.engine.renderer.BatchVertexRenderer;
-import org.spout.engine.renderer.VertexBufferBatcher;
-import org.spout.engine.renderer.vertexbuffer.VertexBuffer;
-import org.spout.engine.renderer.vertexbuffer.VertexBufferImpl;
 import org.spout.engine.util.RenderModeConverter;
 import org.spout.engine.world.SpoutChunk;
 import org.spout.engine.world.SpoutChunkSnapshot;
@@ -94,9 +89,6 @@ public class SpoutClient extends SpoutEngine implements Client {
 
 	@Parameter(names = "-Rendermode", converter = RenderModeConverter.class, description = "Render Version.  Versions: GL11, GL20, GL30, GLES20" )
 	RenderMode rmode = RenderMode.GL30;
-
-
-	TInt21TripleObjectHashMap<PrimitiveBatch> chunkRenderers = new TInt21TripleObjectHashMap<PrimitiveBatch>();
 
 	RenderMaterial material;
 
@@ -144,53 +136,11 @@ public class SpoutClient extends SpoutEngine implements Client {
 		
 	}
 
-	VertexBufferImpl buffer;
 	
 	public void initRenderer() {
 		createWindow();
 		
-		System.out.println("SpoutClient Information");
-		System.out.println("Operating System: " + System.getProperty("os.name"));
-		System.out.println("Renderer Mode: " + this.getRenderMode().toString());
-		System.out.println("OpenGL Information");
-		System.out.println("Vendor: " + GL11.glGetString(GL11.GL_VENDOR));
-		System.out.println("OpenGL Version: " + GL11.glGetString(GL11.GL_VERSION));
-		System.out.println("GLSL Version: " + GL11.glGetString(GL20.GL_SHADING_LANGUAGE_VERSION));
-		String extensions = "Extensions Supported: ";
-		if(rmode == RenderMode.GL30){
-			for (int i = 0; i < GL11.glGetInteger(GL30.GL_NUM_EXTENSIONS); i++) {
-				extensions += GL30.glGetStringi(GL11.GL_EXTENSIONS, i) + " ";
-			}
-		}
-		else{
-			extensions += GL11.glGetString(GL11.GL_EXTENSIONS);
-		}
-		System.out.println(extensions);
-
-		Spout.getFilesystem().postStartup();
-		
-		
-		activeCamera = new BasicCamera(MathHelper.createPerspective(75, aspectRatio, 0.001f, 1000), MathHelper.createLookAt(new Vector3(0, 0, -2), Vector3.ZERO, Vector3.UP));
-		renderer = new PrimitiveBatch();
-	
-		GL11.glEnable(GL11.GL_DEPTH_TEST);
-		Spout.log("Loading Texture");
-		textureTest = (BatchVertexRenderer) BatchVertexRenderer.constructNewBatch(GL11.GL_TRIANGLES);
-		Spout.log("Loading Material");
-		material = (RenderMaterial) Spout.getFilesystem().getResource("material://Vanilla/resources/materials/terrain.smt");
-		
-		
-		buffer = new VertexBufferImpl();
-		vbBatch = new VertexBufferBatcher(GL11.GL_TRIANGLES, buffer);
-	
-	
-		//graphics = new Graphics(Display.getWidth(), Display.getHeight());
-
-		//screenStack = new ScreenStack(new LoadingScreen());
-		//bunny = (BaseMesh) FileSystem.getResource("mesh://Vanilla/bunny.obj");
 	}
-	VertexBufferBatcher vbBatch;
-	BaseMesh bunny;
 
 	private void createWindow(){
 		try {
@@ -247,91 +197,12 @@ public class SpoutClient extends SpoutEngine implements Client {
 
 
 	Texture texture;
-	PrimitiveBatch renderer;
 	final boolean[] sides = {true, true, true, true, true, true};
 	long ticks = 0;
-	BatchVertexRenderer textureTest;
-	//Graphics graphics;
 
 
 	public void render(float dt) {
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-		GL11.glClearColor(1, 1, 1, 0);
-
-		ticks++;
-
-		double cx = 2 * Math.sin(Math.toRadians(ticks));
-		double cz = 2 * Math.cos(Math.toRadians(ticks));
-		double cy = 2 * Math.sin(Math.toRadians(ticks));
-
-		Matrix view = MathHelper.createLookAt(new Vector3(cx, cy, cz), Vector3.ZERO, Vector3.UP);
-		
-		vbBatch.begin(material);
-		vbBatch.addTexCoord(0, 0);
-		vbBatch.addVertex(0, 0);
-		vbBatch.addTexCoord(1, 0);
-		vbBatch.addVertex(1, 0);
-		vbBatch.addTexCoord(0, 1);
-		vbBatch.addVertex(0, 1);
-
-		vbBatch.addTexCoord(0, 1);
-		vbBatch.addVertex(0, 1);
-		vbBatch.addTexCoord(1, 1);
-		vbBatch.addVertex(1, 1);
-		vbBatch.addTexCoord(1, 0);
-		vbBatch.addVertex(1, 0);
-		
-		vbBatch.end();
-		
-		material.getShader().setUniform("View", view);
-		material.getShader().setUniform("Projection", activeCamera.getProjection());
-		buffer.drawBuffer(material);
-		//renderer.getRenderer().getShader().setUniform("View", view);
-		//renderer.getRenderer().getShader().setUniform("Projection", activeCamera.getProjection());
-		//renderer.begin();
-		//renderer.addCube(Vector3.ZERO,Vector3.ONE, Color.RED, sides);
-		//renderer.addMesh(bunny);
-		//((BatchVertexRenderer)renderer.getRenderer()).dumpBuffers();
-		//renderer.end();
-		
-		//renderer.draw();
-/*
-	
-		textureTest.begin(material);
-		textureTest.getShader().setUniform("View", activeCamera.getView());
-		textureTest.getShader().setUniform("Projection", activeCamera.getProjection());
-		textureTest.addTexCoord(0, 0);
-		textureTest.addVertex(0, 0);
-		textureTest.addTexCoord(1, 0);
-		textureTest.addVertex(1, 0);
-		textureTest.addTexCoord(0, 1);
-		textureTest.addVertex(0, 1);
-
-		textureTest.addTexCoord(0, 1);
-		textureTest.addVertex(0, 1);
-		textureTest.addTexCoord(1, 1);
-		textureTest.addVertex(1, 1);
-		textureTest.addTexCoord(1, 0);
-		textureTest.addVertex(1, 0);
-		textureTest.end();
-		textureTest.render();
-		*/
-		/*
-		Object[] worlds = this.getLiveWorlds().toArray();
-		SpoutWorld world = (SpoutWorld)worlds[0];
-		renderVisibleChunks(world);
-		
-		
-	
-		for(Object b : chunkRenderers.values()){
-			PrimitiveBatch batch = (PrimitiveBatch)b;
-			batch.getRenderer().getShader().setUniform("View", view);
-			batch.getRenderer().getShader().setUniform("Projection", activeCamera.getProjection());
-			Spout.log("Drawing: " + batch.getRenderer().getVertexCount() + " Verticies");
-			batch.draw();
-		}
-	*/
-
+		// TODO render
 	}
 
 	@SuppressWarnings("unused")
@@ -350,34 +221,7 @@ public class SpoutClient extends SpoutEngine implements Client {
 	}
 
 	private void buildChunk(SpoutChunkSnapshot snap) {
-		boolean firstSeen = !chunkRenderers.containsKey(snap.getX(), snap.getY(), snap.getZ());
-		/*if(!firstSeen && !snap.isRenderDirty()){
-			Spout.log("Got a chunk that isn't dirty or i've seen it before");
-			return;
-		}*/
-
-		if(firstSeen){
-			PrimitiveBatch b = new PrimitiveBatch();
-			//b.getRenderer().setShader(shader);
-			chunkRenderers.put(snap.getX(), snap.getY(), snap.getZ(), b);
-			Spout.log("Got a new chunk at " + snap.toString());
-		}		
-		
-		PrimitiveBatch batch = chunkRenderers.get(snap.getX(), snap.getY(), snap.getZ());
-		//batch.begin();
-		for (int x = 0; x < ChunkSnapshot.CHUNK_SIZE; x++) {
-			for (int y = 0; y < ChunkSnapshot.CHUNK_SIZE; y++) {
-				for (int z = 0; z < ChunkSnapshot.CHUNK_SIZE; z++) {
-					BlockMaterial m = snap.getBlockMaterial(x, y, z);
-					
-					Color col = getColor(m);
-					if (m.isSolid()) {
-						batch.addCube(new Vector3(x, y, z), Vector3.ONE, col, sides);
-					}
-				}
-			}
-		}
-		batch.end();
+		// TODO render chunk
 		snap.setRenderDirty(false); //Rendered this snapshot
 	}
 

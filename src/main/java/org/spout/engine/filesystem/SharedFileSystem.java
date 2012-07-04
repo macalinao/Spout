@@ -34,19 +34,12 @@ import java.util.HashMap;
 
 import org.spout.api.FileSystem;
 import org.spout.api.Spout;
-import org.spout.api.plugin.Platform;
 import org.spout.api.resource.Resource;
 import org.spout.api.resource.ResourceLoader;
 import org.spout.api.resource.ResourceNotFoundException;
 import org.spout.api.resource.ResourcePathResolver;
-
 import org.spout.engine.filesystem.path.FilepathResolver;
 import org.spout.engine.filesystem.path.JarfileResolver;
-import org.spout.engine.resources.loader.FontLoader;
-import org.spout.engine.resources.loader.MeshLoader;
-import org.spout.engine.resources.loader.RenderMaterialLoader;
-import org.spout.engine.resources.loader.ShaderLoader;
-import org.spout.engine.resources.loader.TextureLoader;
 
 public class SharedFileSystem implements FileSystem {
 	/**
@@ -110,8 +103,9 @@ public class SharedFileSystem implements FileSystem {
 		//Open our jar and grab the fallback 'file' scheme
 		String scheme = path.getScheme();
 		if(scheme.equals("file")){
-			return SharedFileSystem.class.getResourceAsStream("/fallbacks/" + path.getPath());
+			return SharedFileSystem.class.getResourceAsStream("/resources" + path.getPath());
 		}
+		System.out.println("/resources" + path.getPath());
 		
 		//Still can't find it? Throw a ResourceNotFound exception and give out fallbacks
 		throw new ResourceNotFoundException(path.toString());
